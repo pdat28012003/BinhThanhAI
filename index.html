@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Admin - Quản Lý Dữ Liệu</title>
+    <title>AI Chat Search</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e2e5f2 0%, #e8e4ed 100%);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -23,122 +23,65 @@
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1000px;
             height: 90vh;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             display: flex;
             overflow: hidden;
-        }
-
-        .sidebar {
-            width: 300px;
-            background: #f7f9fc;
-            border-right: 1px solid #e1e8ed;
-            display: flex;
             flex-direction: column;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            background: #667eea;
-            color: white;
-        }
-
-        .sidebar-header h2 {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .add-data-btn {
-            width: 100%;
-            padding: 10px;
-            background: white;
-            color: #667eea;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .add-data-btn:hover {
-            background: #f0f0f0;
-            transform: translateY(-2px);
-        }
-
-        .data-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .data-item {
-            padding: 12px;
-            margin-bottom: 8px;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-        }
-
-        .data-item:hover {
-            background: #e8f0fe;
-            border-left-color: #667eea;
-        }
-
-        .data-item-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-            font-size: 14px;
-        }
-
-        .data-item-preview {
-            font-size: 12px;
-            color: #666;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .data-item-date {
-            font-size: 11px;
-            color: #999;
-            margin-top: 4px;
         }
 
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
+            width: 100%;
+            min-height: 0;
         }
 
         .chat-header {
             padding: 20px;
-            background: #667eea;
-            color: white;
+            background: #c4cbec;
+            color: rgb(0, 0, 0);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-header h1 {
             font-size: 24px;
         }
 
-        .stats {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
         .chat-messages {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
             background: #f7f9fc;
+            scroll-behavior: smooth;
+            min-height: 0;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #e1e8ed;
+            border-radius: 5px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
         }
 
         .message {
@@ -172,6 +115,8 @@
             padding: 12px 16px;
             border-radius: 12px;
             line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .message-user .message-content {
@@ -210,14 +155,78 @@
             font-size: 13px;
             color: #333;
             border-left: 3px solid #667eea;
-            max-height: none;
-            overflow: visible;
+            line-height: 1.6;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 0;
+        }
+
+        .result-header:hover {
+            opacity: 0.8;
+        }
+
+        .result-title {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .match-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+
+        .dropdown-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+            color: #667eea;
+            margin-left: 10px;
+        }
+
+        .dropdown-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .result-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, margin-top 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .result-content.expanded {
+            max-height: 1000px;
+            margin-top: 12px;
+            opacity: 1;
+        }
+
+        .content-text {
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: #555;
+        }
+
+        .content-date {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e1e8ed;
         }
 
         .chat-input-area {
             padding: 20px;
             background: white;
             border-top: 1px solid #e1e8ed;
+            flex-shrink: 0;
         }
 
         .input-container {
@@ -237,6 +246,7 @@
         .chat-input:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .send-btn {
@@ -250,186 +260,100 @@
             transition: all 0.3s;
         }
 
-        .send-btn:hover {
+        .send-btn:hover:not(:disabled) {
             background: #5568d3;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .send-btn:disabled {
-            background: #ccc;
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
             align-items: center;
-            z-index: 1000;
         }
 
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
             background: white;
-            padding: 30px;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
+            animation: loadingDots 1.4s infinite ease-in-out both;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
+        .loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes loadingDots {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .loading-message {
+            background: #e8f0fe;
+            color: #1967d2;
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: inline-flex;
             align-items: center;
-            margin-bottom: 20px;
+            gap: 8px;
+            font-weight: 500;
         }
 
-        .modal-header h2 {
-            color: #333;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            min-height: 200px;
-            resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .save-btn {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .save-btn:hover {
-            background: #5568d3;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 48px;    
-            margin-bottom: 16px;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            float: right;
-            margin-top: 4px;
-        }
-
-        .delete-btn:hover {
-            background: #c82333;
+        .loading-message .loading-dot {
+            background: #1967d2;
         }
 
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
+            body {
+                padding: 0;
             }
 
-            .sidebar {
-                width: 100%;
-                height: 200px;
+            .container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
             }
 
             .message-content {
+                max-width: 85%;
+            }
+
+            .chat-header h1 {
+                font-size: 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>📚 Dữ Liệu Đã Lưu (Admin)</h2>
-                <button class="add-data-btn" onclick="openModal()">+ Thêm Dữ Liệu Mới</button>
-            </div>
-            <div class="data-list" id="dataList">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📝</div>
-                    <p>Chưa có dữ liệu nào</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat Area -->
         <div class="chat-area">
             <div class="chat-header">
-                <h1>💬 AI Chat Assistant (Admin)</h1>
-                <div class="stats">
-                    <span id="dataCount">0 dữ liệu</span>
-                </div>
+                <h1>💬 AI Chat Assistant</h1>
             </div>
             <div class="chat-messages" id="chatMessages">
                 <div class="message message-ai">
                     <div class="message-content">
-                        Xin chào! 👋 Tôi là trợ lý AI Admin. Hãy nhập câu hỏi hoặc từ khóa để tìm kiếm trong dữ liệu đã lưu. Bạn cũng có thể thêm dữ liệu mới bằng cách nhấn nút "Thêm Dữ Liệu Mới" bên trái.
+                        Xin chào! 👋 Tôi là trợ lý AI. Hãy nhập câu hỏi để tìm kiếm thông tin.
                     </div>
                 </div>
             </div>
@@ -442,218 +366,190 @@
                         placeholder="Nhập câu hỏi hoặc từ khóa để tìm kiếm..."
                         onkeypress="handleKeyPress(event)"
                     >
-                    <button class="send-btn" onclick="sendMessage()">Gửi</button>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">Gửi</button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal thêm dữ liệu -->
-    <div class="modal" id="dataModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Thêm Dữ Liệu Mới</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <form onsubmit="saveData(event)">
-                <div class="form-group">
-                    <label for="dataTitle">Tiêu đề:</label>
-                    <input type="text" id="dataTitle" required placeholder="Nhập tiêu đề cho dữ liệu">
-                </div>
-                <div class="form-group">
-                    <label for="dataContent">Nội dung:</label>
-                    <textarea id="dataContent" required placeholder="Nhập nội dung văn bản..."></textarea>
-                </div>
-                <button type="submit" class="save-btn">Lưu Dữ Liệu</button>
-            </form>
         </div>
     </div>
 
     <script>
-        // Lưu trữ dữ liệu
         let dataStore = [];
         const API_URL = '/api/data';
 
-        // Load dữ liệu từ server khi trang load
         window.onload = function() {
             fetchData();
         };
 
-        // Lấy dữ liệu từ API
         async function fetchData() {
             try {
                 const response = await fetch(API_URL);
                 dataStore = await response.json();
-                renderDataList();
-                updateStats();
             } catch (error) {
                 console.error('Error fetching data:', error);
-                addMessage('ai', '⚠️ Lỗi kết nối đến server.');
-            }
-        }
-
-        // Mở modal
-        function openModal() {
-            document.getElementById('dataModal').classList.add('active');
-            document.getElementById('dataTitle').value = '';
-            document.getElementById('dataContent').value = '';
-        }
-
-        // Đóng modal
-        function closeModal() {
-            document.getElementById('dataModal').classList.remove('active');
-        }
-
-        // Lưu dữ liệu
-        async function saveData(event) {
-            event.preventDefault();
-            
-            const title = document.getElementById('dataTitle').value;
-            const content = document.getElementById('dataContent').value;
-            
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+                addMessage('ai', '⚠️ Lỗi kết nối đến server. Đang sử dụng dữ liệu mẫu...');
+                
+                dataStore = [
+                    {
+                        id: 1,
+                        title: "Giới thiệu về AI",
+                        content: "Trí tuệ nhân tạo (AI) là lĩnh vực khoa học máy tính tập trung vào việc tạo ra các hệ thống có khả năng thực hiện các tác vụ thông minh như con người.",
+                        date: new Date().toLocaleString('vi-VN')
                     },
-                    body: JSON.stringify({ title, content }),
-                });
-
-                if (response.ok) {
-                    await fetchData(); // Tải lại dữ liệu sau khi lưu
-                    closeModal();
-                    addMessage('ai', `✅ Đã lưu dữ liệu mới: "${title}"`);
-                } else {
-                    alert('Lỗi khi lưu dữ liệu');
-                }
-            } catch (error) {
-                console.error('Error saving data:', error);
-                alert('Lỗi kết nối');
-            }
-        }
-
-        // Render danh sách dữ liệu
-        function renderDataList() {
-            const dataList = document.getElementById('dataList');
-            
-            if (dataStore.length === 0) {
-                dataList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📝</div>
-                        <p>Chưa có dữ liệu nào</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            dataList.innerHTML = dataStore.map(data => `
-                <div class="data-item" onclick="viewData('${data.id}')">
-                    <div class="data-item-title">${data.title}</div>
-                    <div class="data-item-preview">${data.content.substring(0, 60)}...</div>
-                    <div class="data-item-date">${data.date}</div>
-                    <button class="delete-btn" onclick="deleteData(event, '${data.id}')">Xóa</button>
-                </div>
-            `).join('');
-        }
-
-        // Xem chi tiết dữ liệu
-        function viewData(id) {
-            const data = dataStore.find(d => d.id === id);
-            if (data) {
-                addMessage('user', `Xem dữ liệu: ${data.title}`);
-                addMessage('ai', `
-                    <strong>📄 ${data.title}</strong><br><br>
-                    ${data.content}<br><br>
-                    <em>Lưu lúc: ${data.date}</em>
-                `);
-            }
-        }
-
-        // Xóa dữ liệu
-        async function deleteData(event, id) {
-            event.stopPropagation();
-            if (confirm('Bạn có chắc muốn xóa dữ liệu này?')) {
-                try {
-                    const response = await fetch(`${API_URL}/${id}`, {
-                        method: 'DELETE',
-                    });
-
-                    if (response.ok) {
-                        await fetchData();
-                        addMessage('ai', '🗑️ Đã xóa dữ liệu');
-                    } else {
-                        alert('Lỗi khi xóa dữ liệu');
+                    {
+                        id: 2,
+                        title: "Machine Learning cơ bản",
+                        content: "Machine Learning là một nhánh của AI cho phép máy tính học từ dữ liệu mà không cần được lập trình cụ thể. Có 3 loại chính: học có giám sát, học không giám sát và học tăng cường.",
+                        date: new Date().toLocaleString('vi-VN')
+                    },
+                    {
+                        id: 3,
+                        title: "Deep Learning là gì?",
+                        content: "Deep Learning là một phương pháp machine learning sử dụng mạng nơ-ron nhân tạo với nhiều lớp. Nó đặc biệt hiệu quả trong xử lý hình ảnh, âm thanh và ngôn ngữ tự nhiên.",
+                        date: new Date().toLocaleString('vi-VN')
+                    },
+                    {
+                        id: 4,
+                        title: "AI trong y tế",
+                        content: "AI đang được ứng dụng rộng rãi trong y tế để chẩn đoán bệnh, phân tích hình ảnh y khoa, và phát triển thuốc mới.",
+                        date: new Date().toLocaleString('vi-VN')
+                    },
+                    {
+                        id: 5,
+                        title: "Machine Learning trong kinh doanh",
+                        content: "Machine Learning giúp doanh nghiệp phân tích dữ liệu khách hàng, dự đoán xu hướng thị trường và tối ưu hóa quy trình vận hành.",
+                        date: new Date().toLocaleString('vi-VN')
                     }
-                } catch (error) {
-                    console.error('Error deleting data:', error);
-                    alert('Lỗi kết nối');
-                }
+                ];
             }
         }
 
-        // Cập nhật thống kê
-        function updateStats() {
-            document.getElementById('dataCount').textContent = 
-                `${dataStore.length} dữ liệu`;
-        }
-
-        // Tìm kiếm dữ liệu
         function searchData(query) {
-            // Tách câu hỏi thành các từ
-            const queryWords = query.toLowerCase()
-                .trim()
-                .split(/\s+/)
-                .filter(word => word.length > 0);
+            const queryLower = query.toLowerCase().trim();
+            const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
+            
+            if (queryWords.length === 0) return [];
             
             const results = [];
             
+            // CHỈ TÌM KIẾM TRONG TITLE
             dataStore.forEach(data => {
-                // Tách tiêu đề và nội dung thành các từ
-                const titleWords = data.title.toLowerCase().split(/\s+/);
-                const contentWords = data.content.toLowerCase().split(/\s+/);
-                const allDataWords = [...titleWords, ...contentWords];
+                const titleLower = data.title.toLowerCase();
+                const titleWords = titleLower.split(/\s+/);
                 
-                // Đếm số từ trùng khớp
-                let matchCount = 0;
-                queryWords.forEach(queryWord => {
-                    allDataWords.forEach(dataWord => {
-                        // Kiểm tra từng từ hoặc từ chứa từ câu hỏi
-                        if (dataWord.includes(queryWord) || queryWord.includes(dataWord)) {
-                            matchCount++;
+                let score = 0;
+                let exactPhraseMatch = false;
+                let matchedWords = 0;
+                let sequenceBonus = 0;
+                
+                // 1. Kiểm tra cụm từ chính xác trong TITLE (điểm cao nhất)
+                if (titleLower.includes(queryLower)) {
+                    exactPhraseMatch = true;
+                    score += 10000; // Điểm rất cao cho khớp chính xác toàn bộ cụm từ
+                }
+                
+                // 2. Kiểm tra từng từ khóa trong TITLE
+                queryWords.forEach((queryWord, qIndex) => {
+                    titleWords.forEach((titleWord, tIndex) => {
+                        // Khớp chính xác từ
+                        if (titleWord === queryWord) {
+                            matchedWords++;
+                            score += 100; // Điểm cho mỗi từ khớp chính xác
+                            
+                            // Bonus cho thứ tự từ đúng
+                            if (qIndex > 0 && tIndex > 0) {
+                                const prevQueryWord = queryWords[qIndex - 1];
+                                const prevTitleWord = titleWords[tIndex - 1];
+                                if (prevTitleWord === prevQueryWord) {
+                                    sequenceBonus += 50; // Bonus cho thứ tự liên tiếp
+                                }
+                            }
+                        }
+                        // Khớp một phần (từ chứa)
+                        else if (titleWord.includes(queryWord) || queryWord.includes(titleWord)) {
+                            matchedWords += 0.5;
+                            score += 30; // Điểm thấp hơn cho khớp một phần
                         }
                     });
                 });
                 
-                // Nếu có ít nhất 1 từ trùng khớp, thêm vào kết quả
-                if (matchCount > 0) {
+                // 3. Bonus cho số lượng từ khớp
+                const matchRatio = matchedWords / queryWords.length;
+                score += matchRatio * 200; // Bonus dựa trên tỷ lệ từ khớp
+                
+                // 4. Cộng bonus thứ tự
+                score += sequenceBonus;
+                
+                // 5. Chỉ thêm vào kết quả nếu có ít nhất 1 từ khớp
+                if (matchedWords > 0) {
                     results.push({
                         title: data.title,
                         content: data.content,
                         date: data.date,
-                        matchCount: matchCount
+                        score: score,
+                        matchedWords: matchedWords,
+                        totalWords: queryWords.length,
+                        exactMatch: exactPhraseMatch,
+                        matchRatio: matchRatio
                     });
                 }
             });
             
-            // Sắp xếp theo số từ trùng khớp (nhiều nhất lên đầu)
-            results.sort((a, b) => b.matchCount - a.matchCount);
+            // Sắp xếp theo điểm (cao đến thấp)
+            results.sort((a, b) => {
+                // Ưu tiên cụm từ chính xác
+                if (a.exactMatch && !b.exactMatch) return -1;
+                if (!a.exactMatch && b.exactMatch) return 1;
+                
+                // So sánh điểm
+                if (b.score !== a.score) return b.score - a.score;
+                
+                // Nếu điểm bằng nhau, ưu tiên tỷ lệ khớp cao hơn
+                return b.matchRatio - a.matchRatio;
+            });
             
-            return results;
+            // Chỉ trả về top kết quả có điểm cao (lọc bỏ kết quả điểm quá thấp)
+            const threshold = results.length > 0 ? results[0].score * 0.3 : 0;
+            const filteredResults = results.filter(r => r.score >= threshold);
+            
+            return filteredResults.map(item => ({
+                title: item.title,
+                content: item.content,
+                date: item.date,
+                matchInfo: `${Math.round(item.matchedWords)}/${item.totalWords} từ khớp`
+            }));
         }
 
-        // Gửi tin nhắn
         function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
             if (!message) return;
             
+            const messagesDiv = document.getElementById('chatMessages');
+            
             addMessage('user', message);
             input.value = '';
             
-            // Tìm kiếm
+            const questionScrollPosition = messagesDiv.scrollTop;
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = `
+                <div class="loading-dots">
+                    <span class="loading-dot"></span>
+                    <span class="loading-dot"></span>
+                    <span class="loading-dot"></span>
+                </div>
+            `;
+            input.disabled = true;
+            
+            const loadingMessageId = addLoadingMessage();
+            
+            messagesDiv.scrollTop = questionScrollPosition;
+            
             setTimeout(() => {
+                removeLoadingMessage(loadingMessageId);
+                
                 const results = searchData(message);
                 
                 if (results.length > 0) {
@@ -663,47 +559,101 @@
                     response += '<div class="search-results-title">📋 Kết quả tìm kiếm:</div>';
                     
                     results.forEach((result, index) => {
+                        const resultId = 'result-' + Date.now() + '-' + index;
                         response += `
                             <div class="search-result-item">
-                                <strong>${index + 1}. ${result.title}</strong><br>
-                                <div style="margin-top: 8px; line-height: 1.6; white-space: pre-wrap;">${result.content}</div><br>
-                                <small style="color: #999;">Lưu lúc: ${result.date}</small>
+                                <div class="result-header" onclick="toggleResult('${resultId}')">
+                                    <span class="result-title">
+                                        ${index + 1}. ${result.title}
+                                        <span class="match-badge">${result.matchInfo}</span>
+                                    </span>
+                                    <span class="dropdown-icon" id="icon-${resultId}">▼</span>
+                                </div>
+                                <div class="result-content" id="${resultId}">
+                                    <div class="content-text">${result.content}</div>
+                                    <div class="content-date">
+                                        <small style="color: #999;">📅 Lưu lúc: ${result.date}</small>
+                                    </div>
+                                </div>
                             </div>
                         `;
                     });
                     
                     response += '</div>';
                     
-                    addMessage('ai', response);
+                    addMessage('ai', response, false);
                 } else {
-                    addMessage('ai', `Không tìm thấy kết quả nào cho "<em>${message}</em>".`);
+                    addMessage('ai', `Không tìm thấy kết quả nào cho "<em>${message}</em>". Bạn có thể thử với từ khóa khác như "AI", "Machine Learning", hoặc "Deep Learning".`, false);
                 }
-            }, 500);
+                
+                messagesDiv.scrollTop = questionScrollPosition;
+                
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Gửi';
+                input.disabled = false;
+                input.focus();
+            }, 3000);
         }
 
-        // Thêm tin nhắn vào chat
-        function addMessage(type, content) {
+        function addLoadingMessage() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            const messageId = 'loading-' + Date.now();
+            messageDiv.id = messageId;
+            messageDiv.className = 'message message-ai';
+            messageDiv.innerHTML = `
+                <div class="message-content loading-message">
+                    <span>Đang tìm kiếm</span>
+                    <div class="loading-dots">
+                        <span class="loading-dot"></span>
+                        <span class="loading-dot"></span>
+                        <span class="loading-dot"></span>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            return messageId;
+        }
+
+        function removeLoadingMessage(messageId) {
+            const loadingMsg = document.getElementById(messageId);
+            if (loadingMsg) {
+                loadingMsg.remove();
+            }
+        }
+
+        function addMessage(type, content, autoScroll = true) {
             const messagesDiv = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message message-${type}`;
             messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
             messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            if (autoScroll) {
+                setTimeout(() => {
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }, 100);
+            }
         }
 
-        // Xử lý phím Enter
         function handleKeyPress(event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 sendMessage();
             }
         }
 
-        // Đóng modal khi click bên ngoài
-        document.getElementById('dataModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeModal();
+        function toggleResult(resultId) {
+            const content = document.getElementById(resultId);
+            const icon = document.getElementById('icon-' + resultId);
+            
+            if (content && icon) {
+                content.classList.toggle('expanded');
+                icon.classList.toggle('expanded');
             }
-        });
+        }
+
+        document.getElementById('chatInput').focus();
     </script>
 </body>
 </html>
