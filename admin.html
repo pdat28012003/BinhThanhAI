@@ -371,6 +371,101 @@
             margin-bottom: 16px;
         }
 
+        .menu-tabs {
+            display: flex;
+            gap: 5px;
+            padding: 10px;
+            background: #e8ecf1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .menu-tab {
+            flex: 1;
+            padding: 8px;
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .menu-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .menu-tab:hover {
+            background: #f0f4ff;
+        }
+
+        .menu-tab.active:hover {
+            background: #5568d3;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .image-preview {
+            width: 100%;
+            max-width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .carousel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .carousel-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .carousel-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .carousel-item-info {
+            flex: 1;
+        }
+
+        .carousel-item-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .carousel-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
         .delete-btn {
             background: #dc3545;
             color: white;
@@ -379,8 +474,6 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 11px;
-            float: right;
-            margin-top: 4px;
         }
 
         .delete-btn:hover {
@@ -407,13 +500,29 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>📚 Dữ Liệu Đã Lưu (Admin)</h2>
-                <button class="add-data-btn" onclick="openModal()">+ Thêm Dữ Liệu Mới</button>
+                <h2>📚 Quản Lý Dữ Liệu</h2>
+                <button class="add-data-btn" onclick="switchTab('data')">+ Thêm Mới</button>
             </div>
-            <div class="data-list" id="dataList">
+
+            <!-- Menu Tabs -->
+            <div class="menu-tabs">
+                <div class="menu-tab active" onclick="switchTab('data')">📝 Dữ Liệu</div>
+                <div class="menu-tab" onclick="switchTab('carousel')">🖼️ Ảnh</div>
+            </div>
+
+            <!-- Data List -->
+            <div class="data-list" id="dataList" style="display: block;">
                 <div class="empty-state">
                     <div class="empty-state-icon">📝</div>
                     <p>Chưa có dữ liệu nào</p>
+                </div>
+            </div>
+
+            <!-- Carousel List -->
+            <div class="carousel-list" id="carouselList" style="display: none; padding: 10px;">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🖼️</div>
+                    <p>Chưa có ảnh nào</p>
                 </div>
             </div>
         </div>
@@ -452,10 +561,11 @@
     <div class="modal" id="dataModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Thêm Dữ Liệu Mới</h2>
+                <h2 id="modalTitle">Thêm Dữ Liệu Mới</h2>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
-            <form onsubmit="saveData(event)">
+            <!-- Data Form -->
+            <form id="dataForm" onsubmit="saveData(event)" style="display: block;">
                 <div class="form-group">
                     <label for="dataTitle">Tiêu đề:</label>
                     <input type="text" id="dataTitle" required placeholder="Nhập tiêu đề cho dữ liệu">
@@ -466,18 +576,62 @@
                 </div>
                 <button type="submit" class="save-btn">Lưu Dữ Liệu</button>
             </form>
+
+            <!-- Carousel Form -->
+            <form id="carouselForm" onsubmit="saveCarouselImage(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="carouselTitle">Tiêu đề ảnh:</label>
+                    <input type="text" id="carouselTitle" placeholder="Nhập tiêu đề ảnh">
+                </div>
+                <div class="form-group">
+                    <label for="carouselAlt">Mô tả ảnh (Alt):</label>
+                    <input type="text" id="carouselAlt" placeholder="Mô tả ảnh cho SEO">
+                </div>
+                <div class="form-group">
+                    <label for="carouselOrder">Thứ tự:</label>
+                    <input type="number" id="carouselOrder" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="carouselImage">Chọn ảnh:</label>
+                    <input type="file" id="carouselImage" accept="image/*" required>
+                    <img id="imagePreview" class="image-preview" style="display: none;">
+                </div>
+                <button type="submit" class="save-btn">Upload Ảnh</button>
+            </form>
         </div>
     </div>
 
     <script>
         // Lưu trữ dữ liệu
         let dataStore = [];
+        let carouselStore = [];
         const API_URL = '/api/data';
+        const CAROUSEL_API_URL = '/api/carousel';
+        let currentTab = 'data';
 
         // Load dữ liệu từ server khi trang load
         window.onload = function() {
             fetchData();
+            fetchCarouselImages();
+            setupImagePreview();
         };
+
+        // Setup image preview
+        function setupImagePreview() {
+            const fileInput = document.getElementById('carouselImage');
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('imagePreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
 
         // Lấy dữ liệu từ API
         async function fetchData() {
@@ -492,11 +646,87 @@
             }
         }
 
+        // Lấy ảnh carousel
+        async function fetchCarouselImages() {
+            try {
+                const response = await fetch(CAROUSEL_API_URL);
+                carouselStore = await response.json();
+                renderCarouselList();
+            } catch (error) {
+                console.error('Error fetching carousel images:', error);
+            }
+        }
+
+        // Render carousel list
+        function renderCarouselList() {
+            const carouselList = document.getElementById('carouselList');
+            
+            if (carouselStore.length === 0) {
+                carouselList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🖼️</div>
+                        <p>Chưa có ảnh nào</p>
+                    </div>
+                `;
+                return;
+            }
+
+            carouselList.innerHTML = carouselStore.map(image => `
+                <div class="carousel-item">
+                    <img src="${image.imageUrl}" alt="${image.alt}" onerror="this.src='/img/placeholder.png'">
+                    <div class="carousel-item-info">
+                        <div class="carousel-item-title">${image.title || 'Untitled'}</div>
+                        <small>${image.alt || 'Không có mô tả'}</small>
+                    </div>
+                    <div class="carousel-item-actions">
+                        <button type="button" class="delete-btn" onclick="deleteCarouselImage('${image._id}')">Xóa</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Chuyển tab
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.menu-tab').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update lists
+            document.getElementById('dataList').style.display = tab === 'data' ? 'block' : 'none';
+            document.getElementById('carouselList').style.display = tab === 'carousel' ? 'block' : 'none';
+
+            // Update modal form
+            document.getElementById('dataForm').style.display = tab === 'data' ? 'block' : 'none';
+            document.getElementById('carouselForm').style.display = tab === 'carousel' ? 'block' : 'none';
+            
+            // Update modal title
+            const modalTitle = document.getElementById('modalTitle');
+            if (tab === 'data') {
+                modalTitle.textContent = 'Thêm Dữ Liệu Mới';
+            } else {
+                modalTitle.textContent = 'Upload Ảnh Carousel';
+            }
+
+            openModal();
+        }
+
         // Mở modal
         function openModal() {
             document.getElementById('dataModal').classList.add('active');
-            document.getElementById('dataTitle').value = '';
-            document.getElementById('dataContent').value = '';
+            if (currentTab === 'data') {
+                document.getElementById('dataTitle').value = '';
+                document.getElementById('dataContent').value = '';
+            } else {
+                document.getElementById('carouselTitle').value = '';
+                document.getElementById('carouselAlt').value = '';
+                document.getElementById('carouselOrder').value = carouselStore.length;
+                document.getElementById('carouselImage').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+            }
         }
 
         // Đóng modal
@@ -529,6 +759,66 @@
                 }
             } catch (error) {
                 console.error('Error saving data:', error);
+                alert('Lỗi kết nối');
+            }
+        }
+
+        // Lưu ảnh carousel
+        async function saveCarouselImage(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('carouselImage');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Vui lòng chọn ảnh');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('title', document.getElementById('carouselTitle').value || 'Untitled');
+            formData.append('alt', document.getElementById('carouselAlt').value);
+            formData.append('order', document.getElementById('carouselOrder').value);
+
+            try {
+                const response = await fetch('/api/carousel/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    await fetchCarouselImages();
+                    closeModal();
+                    addMessage('ai', `✅ Đã upload ảnh: "${result.data.title}"`);
+                } else {
+                    alert('Lỗi khi upload ảnh: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error uploading carousel image:', error);
+                alert('Lỗi kết nối');
+            }
+        }
+
+        // Xóa ảnh carousel
+        async function deleteCarouselImage(id) {
+            if (!confirm('Bạn chắc chắn muốn xóa ảnh này?')) return;
+
+            try {
+                const response = await fetch(`/api/carousel/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await fetchCarouselImages();
+                    addMessage('ai', '✅ Đã xóa ảnh');
+                } else {
+                    alert('Lỗi khi xóa ảnh');
+                }
+            } catch (error) {
+                console.error('Error deleting carousel image:', error);
                 alert('Lỗi kết nối');
             }
         }

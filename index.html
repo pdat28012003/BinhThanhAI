@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Search</title>
+    <title>AI Chat Search - Bầu Cử Hoài Nhơn Bắc</title>
     <style>
         * {
             margin: 0;
@@ -53,6 +53,163 @@
 
         .chat-header h1 {
             font-size: 24px;
+        }
+
+        /* Carousel Styles */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .carousel-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        .carousel-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            font-size: 24px;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .carousel-btn.prev {
+            left: 20px;
+        }
+
+        .carousel-btn.next {
+            right: 20px;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .indicator.active {
+            background: white;
+            width: 30px;
+            border-radius: 6px;
+        }
+
+        /* Gallery Styles */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Fullscreen Modal */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .fullscreen-modal.active {
+            display: flex;
+        }
+
+        .fullscreen-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: transform 0.3s;
+        }
+
+        .close-modal:hover {
+            transform: scale(1.2);
         }
 
         .chat-messages {
@@ -323,6 +480,39 @@
             background: #1967d2;
         }
 
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 12px;
+            background: #f0f4ff;
+            border-radius: 8px;
+        }
+
+        .option-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .option-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-btn:active {
+            transform: translateY(0);
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -339,7 +529,26 @@
             }
 
             .chat-header h1 {
-                font-size: 20px;
+                font-size: 18px;
+            }
+
+            .carousel-wrapper {
+                height: 250px;
+            }
+
+            .carousel-btn {
+                font-size: 18px;
+                padding: 10px 15px;
+            }
+
+            .image-gallery {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .gallery-item img {
+                height: 150px;
             }
         }
     </style>
@@ -348,12 +557,42 @@
     <div class="container">
         <div class="chat-area">
             <div class="chat-header">
-                <h1>💬 AI Chat Assistant</h1>
+                <h1>🗳️ AI HỎI ĐÁP BẦU CỬ PHƯỜNG HOÀI NHƠN BẮC</h1>
             </div>
             <div class="chat-messages" id="chatMessages">
                 <div class="message message-ai">
                     <div class="message-content">
-                        Xin chào! 👋 Tôi là trợ lý AI. Hãy nhập câu hỏi để tìm kiếm thông tin.
+                        <strong>Xin chào! 👋 TÔI LÀ TRỢ LÝ AI HỎI ĐÁP BẦU CỬ PHƯỜNG HOÀI NHƠN BẮC</strong>
+
+                        <!-- Carousel for Election Images -->
+                        <div class="carousel-container">
+                            <div class="carousel-wrapper">
+                                <div class="carousel-slide active">
+                                    <img src="/img/img1.jpg" alt="Bầu cử đại biểu quốc hội">
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="/img/img2.jpg" alt="Ngày hội của toàn dân">
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="/img/img3.jpg" alt="Phường Hoài Nhơn Bắc">
+                                </div>
+                            </div>
+                            <button class="carousel-btn prev" onclick="changeSlide(-1)">❮</button>
+                            <button class="carousel-btn next" onclick="changeSlide(1)">❯</button>
+                            <div class="carousel-indicators">
+                                <span class="indicator active" onclick="goToSlide(0)"></span>
+                                <span class="indicator" onclick="goToSlide(1)"></span>
+                                <span class="indicator" onclick="goToSlide(2)"></span>
+                            </div>
+                        </div>
+
+                        <div class="options-container">
+                            <button class="option-btn" onclick="selectOption('Có bao nhiêu đơn vị bầu cử ?')">Có bao nhiêu đơn vị bầu cử ?</button>
+                            <button class="option-btn" onclick="selectOption('Ngày Bầu cử là ngày mấy ?')">Ngày Bầu cử là ngày mấy ?</button>
+                            <button class="option-btn" onclick="selectOption('Các mốc thời gian quan trọng')">Các mốc thời gian quan trọng</button>
+                            <button class="option-btn" onclick="selectOption('ĐƠN VỊ BẦU CỬ')">ĐƠN VỊ BẦU CỬ</button>
+                            <button class="option-btn" onclick="selectOption('Hoài Nhơn Bắc có bao nhiêu đơn vị bầu cử ?')">Hoài Nhơn Bắc có bao nhiêu đơn vị bầu cử ?</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -372,13 +611,130 @@
         </div>
     </div>
 
+    <!-- Fullscreen Modal -->
+    <div class="fullscreen-modal" id="fullscreenModal">
+        <button class="close-modal" onclick="closeFullscreen()">×</button>
+        <img id="fullscreenImage" src="" alt="Fullscreen">
+    </div>
+
     <script>
         let dataStore = [];
+        let carouselImages = [];
         const API_URL = '/api/data';
+        const CAROUSEL_API_URL = '/api/carousel';
+        let currentSlide = 0;
+        let slideInterval;
 
         window.onload = function() {
             fetchData();
+            fetchCarouselImages();
+            startCarousel();
         };
+
+        // Carousel Functions
+        function startCarousel() {
+            slideInterval = setInterval(() => {
+                changeSlide(1);
+            }, 5000);
+        }
+
+        async function fetchCarouselImages() {
+            try {
+                const response = await fetch(CAROUSEL_API_URL);
+                carouselImages = await response.json();
+                renderCarouselSlides();
+            } catch (error) {
+                console.error('Error fetching carousel images:', error);
+                // Use default images if API fails
+                carouselImages = [
+                    { imageUrl: '/img/img1.jpg', alt: 'Bầu cử đại biểu quốc hội', order: 0 },
+                    { imageUrl: '/img/img2.jpg', alt: 'Ngày hội của toàn dân', order: 1 },
+                    { imageUrl: '/img/img3.jpg', alt: 'Phường Hoài Nhơn Bắc', order: 2 }
+                ];
+                renderCarouselSlides();
+            }
+        }
+
+        function renderCarouselSlides() {
+            const carouselWrapper = document.querySelector('.carousel-wrapper');
+            if (!carouselWrapper) return;
+
+            // Clear existing slides except structure
+            const existingSlides = carouselWrapper.querySelectorAll('.carousel-slide');
+            existingSlides.forEach(slide => slide.remove());
+
+            // Add slides from database
+            carouselImages.forEach((image, index) => {
+                const slideDiv = document.createElement('div');
+                slideDiv.className = `carousel-slide ${index === 0 ? 'active' : ''}`;
+                slideDiv.innerHTML = `<img src="${image.imageUrl}" alt="${image.alt}">`;
+                carouselWrapper.appendChild(slideDiv);
+            });
+
+            // Update indicators
+            const indicatorsContainer = carouselWrapper.parentElement.querySelector('.carousel-indicators');
+            if (indicatorsContainer) {
+                indicatorsContainer.innerHTML = '';
+                carouselImages.forEach((_, index) => {
+                    const indicator = document.createElement('span');
+                    indicator.className = `indicator ${index === 0 ? 'active' : ''}`;
+                    indicator.onclick = () => goToSlide(index);
+                    indicatorsContainer.appendChild(indicator);
+                });
+            }
+        }
+
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            if (slides.length === 0) return;
+            
+            slides[currentSlide].classList.remove('active');
+            indicators[currentSlide].classList.remove('active');
+            
+            currentSlide = (currentSlide + direction + slides.length) % slides.length;
+            
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+            
+            resetCarouselInterval();
+        }
+
+        function goToSlide(index) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            if (slides.length === 0) return;
+            
+            slides[currentSlide].classList.remove('active');
+            indicators[currentSlide].classList.remove('active');
+            
+            currentSlide = index % slides.length;
+            
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+            
+            resetCarouselInterval();
+        }
+
+        function resetCarouselInterval() {
+            clearInterval(slideInterval);
+            startCarousel();
+        }
+
+        // Gallery Functions
+        function openFullscreen(imageSrc) {
+            const modal = document.getElementById('fullscreenModal');
+            const image = document.getElementById('fullscreenImage');
+            image.src = imageSrc;
+            modal.classList.add('active');
+        }
+
+        function closeFullscreen() {
+            const modal = document.getElementById('fullscreenModal');
+            modal.classList.remove('active');
+        }
 
         async function fetchData() {
             try {
@@ -391,32 +747,32 @@
                 dataStore = [
                     {
                         id: 1,
-                        title: "Giới thiệu về AI",
-                        content: "Trí tuệ nhân tạo (AI) là lĩnh vực khoa học máy tính tập trung vào việc tạo ra các hệ thống có khả năng thực hiện các tác vụ thông minh như con người.",
+                        title: "Ngày bầu cử 15-3-2026",
+                        content: "Cuộc bầu cử đại biểu Quốc hội khóa XVI và đại biểu Hội đồng nhân dân các cấp nhiệm kỳ 2026-2031 sẽ diễn ra vào ngày 15 tháng 3 năm 2026.",
                         date: new Date().toLocaleString('vi-VN')
                     },
                     {
                         id: 2,
-                        title: "Machine Learning cơ bản",
-                        content: "Machine Learning là một nhánh của AI cho phép máy tính học từ dữ liệu mà không cần được lập trình cụ thể. Có 3 loại chính: học có giám sát, học không giám sát và học tăng cường.",
+                        title: "Đơn vị bầu cử",
+                        content: "Phường Hoài Nhơn Bắc được chia thành nhiều đơn vị bầu cử để tổ chức bầu cử đại biểu Hội đồng nhân dân cấp phường và các cấp cao hơn.",
                         date: new Date().toLocaleString('vi-VN')
                     },
                     {
                         id: 3,
-                        title: "Deep Learning là gì?",
-                        content: "Deep Learning là một phương pháp machine learning sử dụng mạng nơ-ron nhân tạo với nhiều lớp. Nó đặc biệt hiệu quả trong xử lý hình ảnh, âm thanh và ngôn ngữ tự nhiên.",
+                        title: "Quyền và nghĩa vụ của cử tri",
+                        content: "Mọi công dân từ đủ 18 tuổi trở lên có quyền bầu cử và từ đủ 21 tuổi trở lên có quyền ứng cử. Việc bầu cử và ứng cử là quyền và nghĩa vụ của công dân.",
                         date: new Date().toLocaleString('vi-VN')
                     },
                     {
                         id: 4,
-                        title: "AI trong y tế",
-                        content: "AI đang được ứng dụng rộng rãi trong y tế để chẩn đoán bệnh, phân tích hình ảnh y khoa, và phát triển thuốc mới.",
+                        title: "Thủ tục bầu cử",
+                        content: "Cử tri cần mang theo thẻ căn cước công dân hoặc chứng minh nhân dân và thông báo bầu cử đến địa điểm bỏ phiếu được chỉ định trong thời gian quy định.",
                         date: new Date().toLocaleString('vi-VN')
                     },
                     {
                         id: 5,
-                        title: "Machine Learning trong kinh doanh",
-                        content: "Machine Learning giúp doanh nghiệp phân tích dữ liệu khách hàng, dự đoán xu hướng thị trường và tối ưu hóa quy trình vận hành.",
+                        title: "Các mốc thời gian quan trọng",
+                        content: "Công tác chuẩn bị bầu cử bắt đầu từ quý IV năm 2025, bao gồm lập danh sách cử tri, giới thiệu ứng cử viên, và vận động bầu cử. Ngày bầu cử chính thức là 15-3-2026.",
                         date: new Date().toLocaleString('vi-VN')
                     }
                 ];
@@ -431,7 +787,6 @@
             
             const results = [];
             
-            // CHỈ TÌM KIẾM TRONG TITLE
             dataStore.forEach(data => {
                 const titleLower = data.title.toLowerCase();
                 const titleWords = titleLower.split(/\s+/);
@@ -441,45 +796,36 @@
                 let matchedWords = 0;
                 let sequenceBonus = 0;
                 
-                // 1. Kiểm tra cụm từ chính xác trong TITLE (điểm cao nhất)
                 if (titleLower.includes(queryLower)) {
                     exactPhraseMatch = true;
-                    score += 10000; // Điểm rất cao cho khớp chính xác toàn bộ cụm từ
+                    score += 10000;
                 }
                 
-                // 2. Kiểm tra từng từ khóa trong TITLE
                 queryWords.forEach((queryWord, qIndex) => {
                     titleWords.forEach((titleWord, tIndex) => {
-                        // Khớp chính xác từ
                         if (titleWord === queryWord) {
                             matchedWords++;
-                            score += 100; // Điểm cho mỗi từ khớp chính xác
+                            score += 100;
                             
-                            // Bonus cho thứ tự từ đúng
                             if (qIndex > 0 && tIndex > 0) {
                                 const prevQueryWord = queryWords[qIndex - 1];
                                 const prevTitleWord = titleWords[tIndex - 1];
                                 if (prevTitleWord === prevQueryWord) {
-                                    sequenceBonus += 50; // Bonus cho thứ tự liên tiếp
+                                    sequenceBonus += 50;
                                 }
                             }
                         }
-                        // Khớp một phần (từ chứa)
                         else if (titleWord.includes(queryWord) || queryWord.includes(titleWord)) {
                             matchedWords += 0.5;
-                            score += 30; // Điểm thấp hơn cho khớp một phần
+                            score += 30;
                         }
                     });
                 });
                 
-                // 3. Bonus cho số lượng từ khớp
                 const matchRatio = matchedWords / queryWords.length;
-                score += matchRatio * 200; // Bonus dựa trên tỷ lệ từ khớp
-                
-                // 4. Cộng bonus thứ tự
+                score += matchRatio * 200;
                 score += sequenceBonus;
                 
-                // 5. Chỉ thêm vào kết quả nếu có ít nhất 1 từ khớp
                 if (matchedWords > 0) {
                     results.push({
                         title: data.title,
@@ -494,20 +840,13 @@
                 }
             });
             
-            // Sắp xếp theo điểm (cao đến thấp)
             results.sort((a, b) => {
-                // Ưu tiên cụm từ chính xác
                 if (a.exactMatch && !b.exactMatch) return -1;
                 if (!a.exactMatch && b.exactMatch) return 1;
-                
-                // So sánh điểm
                 if (b.score !== a.score) return b.score - a.score;
-                
-                // Nếu điểm bằng nhau, ưu tiên tỷ lệ khớp cao hơn
                 return b.matchRatio - a.matchRatio;
             });
             
-            // Chỉ trả về top kết quả có điểm cao (lọc bỏ kết quả điểm quá thấp)
             const threshold = results.length > 0 ? results[0].score * 0.3 : 0;
             const filteredResults = results.filter(r => r.score >= threshold);
             
@@ -517,6 +856,13 @@
                 date: item.date,
                 matchInfo: `${Math.round(item.matchedWords)}/${item.totalWords} từ khớp`
             }));
+        }
+
+        function selectOption(optionText) {
+            const input = document.getElementById('chatInput');
+            input.value = optionText;
+            input.focus();
+            sendMessage();
         }
 
         function sendMessage() {
@@ -583,7 +929,7 @@
                     
                     addMessage('ai', response, false);
                 } else {
-                    addMessage('ai', `Không tìm thấy kết quả nào cho "<em>${message}</em>". Bạn có thể thử với từ khóa khác như "AI", "Machine Learning", hoặc "Deep Learning".`, false);
+                    addMessage('ai', `Không tìm thấy kết quả nào cho "<em>${message}</em>". Bạn có thể thử với từ khóa khác hoặc đặt câu hỏi về bầu cử.`, false);
                 }
                 
                 messagesDiv.scrollTop = questionScrollPosition;
@@ -592,7 +938,7 @@
                 sendBtn.textContent = 'Gửi';
                 input.disabled = false;
                 input.focus();
-            }, 3000);
+            }, 2000);
         }
 
         function addLoadingMessage() {
