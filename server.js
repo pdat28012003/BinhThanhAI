@@ -6,9 +6,15 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const GEMINI_MODEL_NAME = 'gemini-2.5-flash-lite';
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const geminiClient = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+const geminiModel = geminiClient ? geminiClient.getGenerativeModel({ model: GEMINI_MODEL_NAME }) : null;
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Create uploads directory if it doesn't exist
 const uploadDir = path.join(__dirname, 'uploads');
@@ -51,8 +57,8 @@ mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => console.error('❌ MongoDB Connection Error:', err));
+.then(() => console.log('âœ… MongoDB Connected'))
+.catch(err => console.error('âŒ MongoDB Connection Error:', err));
 
 // Schema
 const ChatDataSchema = new mongoose.Schema({
@@ -117,6 +123,61 @@ app.delete('/api/data/:id', async (req, res) => {
         res.json({ message: 'Deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/ask', async (req, res) => {
+    try {
+        if (!geminiModel) {
+            return res.status(500).json({ error: 'Thiáº¿u cáº¥u hÃ¬nh Gemini API' });
+        }
+
+        const question = (req.body.question || '').trim();
+        if (!question) {
+            return res.status(400).json({ error: 'Vui lÃ²ng nháº­p cÃ¢u há»i' });
+        }
+
+        const regex = new RegExp(escapeRegex(question), 'i');
+        let relevantData = await ChatData.find({
+            $or: [
+                { title: { $regex: regex } },
+                { content: { $regex: regex } }
+            ]
+        }).limit(6);
+
+        if (relevantData.length === 0) {
+            relevantData = await ChatData.find().sort({ createdAt: -1 }).limit(6);
+        }
+
+        const context = relevantData.map((item, index) => `Má»¥c ${index + 1}: ${item.title}\nNgÃ y lÆ°u: ${item.date}\nNá»™i dung: ${item.content}`).join('\n\n');
+
+        const prompt = [
+            'Báº¡n lÃ  trá»£ lÃ½ AI há»— trá»£ báº§u cá»­ PhÆ°á»ng HoÃ i NhÆ¡n Báº¯c.',
+            'LuÃ´n tráº£ lá»i báº±ng tiáº¿ng Viá»‡t, chá»‰ sá»­ dá»¥ng thÃ´ng tin trong dá»¯ liá»‡u Ä‘Æ°á»£c cung cáº¥p.',
+            'Náº¿u dá»¯ liá»‡u khÃ´ng Ä‘á»§, hÃ£y nÃ³i rÃµ vÃ  gá»£i Ã½ ngÆ°á»i dÃ¹ng kiá»ƒm tra láº¡i sau.',
+            'Dá»¯ liá»‡u:',
+            context || 'KhÃ´ng cÃ³ dá»¯ liá»‡u',
+            `CÃ¢u há»i: ${question}`,
+            'CÃ¢u tráº£ lá»i chi tiáº¿t:'
+        ].join('\n\n');
+
+        const result = await geminiModel.generateContent(prompt);
+        const answer = result && result.response && typeof result.response.text === 'function'
+            ? result.response.text()
+            : '';
+
+        res.json({
+            answer: answer && answer.trim().length > 0 ? answer : 'TÃ´i chÆ°a tÃ¬m tháº¥y thÃ´ng tin phÃ¹ há»£p trong dá»¯ liá»‡u hiá»‡n cÃ³.',
+            references: relevantData.map(item => ({
+                id: item._id,
+                title: item.title,
+                content: item.content,
+                date: item.date
+            }))
+        });
+    } catch (err) {
+        console.error('Gemini API error:', err);
+        res.status(500).json({ error: 'KhÃ´ng thá»ƒ xá»­ lÃ½ yÃªu cáº§u. Vui lÃ²ng thá»­ láº¡i.' });
     }
 });
 

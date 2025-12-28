@@ -268,7 +268,7 @@
         }
 
         .message-content {
-            max-width: 70%;
+            max-width: 90%;
             padding: 12px 16px;
             border-radius: 12px;
             line-height: 1.5;
@@ -295,6 +295,8 @@
             padding: 12px;
             margin-top: 8px;
             border-radius: 8px;
+            max-height: 800px;
+            overflow-y: auto;
         }
 
         .search-results-title {
@@ -372,7 +374,7 @@
         }
 
         .result-content.expanded {
-            max-height: 1000px;
+            max-height: 2000px;
             margin-top: 12px;
             opacity: 1;
         }
@@ -995,6 +997,41 @@
             }));
         }
 
+        function formatAnswerText(text = '') {
+            if (!text) return '';
+            let formatted = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            return formatted.replace(/\n/g, '<br>');
+        }
+
+        function buildReferencesHtml(references = []) {
+            if (!Array.isArray(references) || references.length === 0) return '';
+            const baseId = Date.now();
+            let html = '<div class="search-results">';
+            html += '<div class="search-results-title">📋 Thông tin sử dụng:</div>';
+            references.forEach((ref, index) => {
+                const resultId = `ref-${baseId}-${index}`;
+                html += `
+                    <div class="search-result-item">
+                        <div class="result-header" onclick="toggleResult('${resultId}')">
+                            <span class="result-title">
+                                ${index + 1}. ${ref.title || 'Không có tiêu đề'}
+                            </span>
+                            <span class="dropdown-icon" id="icon-${resultId}">▼</span>
+                        </div>
+                        <div class="result-content" id="${resultId}">
+                            <div class="content-text">${ref.content || ''}</div>
+                            <div class="content-date">
+                                <small style="color: #999;">📅 Lưu lúc: ${ref.date || ''}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
         function selectOption(optionText) {
             const input = document.getElementById('chatInput');
             input.value = optionText;
@@ -1002,7 +1039,7 @@
             sendMessage();
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
@@ -1030,18 +1067,39 @@
             
             messagesDiv.scrollTop = questionScrollPosition;
             
-            setTimeout(() => {
-                removeLoadingMessage(loadingMessageId);
-                
-                const results = searchData(message);
-                
-                if (results.length > 0) {
-                    let response = `Tôi đã tìm thấy <strong>${results.length}</strong> kết quả phù hợp với "<em>${message}</em>":`;
+            try {
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: message })
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.error || 'Yêu cầu thất bại');
+                }
+
+                const formattedAnswer = formatAnswerText(payload.answer || '');
+                let responseHtml = formattedAnswer ? `<div class="content-text">${formattedAnswer}</div>` : '';
+                responseHtml += buildReferencesHtml(payload.references);
+
+                if (!responseHtml) {
+                    responseHtml = 'Không nhận được phản hồi từ máy chủ.';
+                }
+
+                addMessage('ai', responseHtml, false);
+            } catch (error) {
+                console.error('Gemini request error:', error);
+                const fallbackResults = searchData(message);
+                if (fallbackResults.length > 0) {
+                    let response = `Không thể kết nối đến máy chủ AI. Hiển thị <strong>${fallbackResults.length}</strong> kết quả phù hợp với "<em>${message}</em>":`;
                     
                     response += '<div class="search-results">';
-                    response += '<div class="search-results-title">📋 Kết quả tìm kiếm:</div>';
+                    response += '<div class="search-results-title">📋 Kết quả tìm kiếm (dự phòng):</div>';
                     
-                    results.forEach((result, index) => {
+                    fallbackResults.forEach((result, index) => {
                         const resultId = 'result-' + Date.now() + '-' + index;
                         const badgeClass = result.isExactMatch ? 'exact-match-badge' : 'match-badge';
                         const badgeText = result.isExactMatch ? '✓ Khớp chính xác' : result.matchInfo;
@@ -1069,16 +1127,16 @@
                     
                     addMessage('ai', response, false);
                 } else {
-                    addMessage('ai', `Không tìm thấy kết quả nào cho "<em>${message}</em>". Bạn có thể thử với từ khóa khác hoặc đặt câu hỏi về bầu cử.`, false);
+                    addMessage('ai', 'Không thể kết nối đến máy chủ AI và không có dữ liệu dự phòng phù hợp.', false);
                 }
-                
+            } finally {
+                removeLoadingMessage(loadingMessageId);
                 messagesDiv.scrollTop = questionScrollPosition;
-                
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Gửi';
                 input.disabled = false;
                 input.focus();
-            }, 2000);
+            }
         }
 
         function addLoadingMessage() {
