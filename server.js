@@ -57,13 +57,18 @@ mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
-.then(() => console.log('âœ… MongoDB Connected'))
-.catch(err => console.error('âŒ MongoDB Connection Error:', err));
+.then(() => console.log('✅ MongoDB Connected'))
+.catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// Schema
+// ============================================
+// UPDATED Schema - Support Word Documents
+// ============================================
 const ChatDataSchema = new mongoose.Schema({
     title: { type: String, required: true },
     content: { type: String, required: true },
+    fileType: { type: String, enum: ['text', 'word'], default: 'text' },
+    htmlContent: { type: String, default: null },
+    imageCount: { type: Number, default: 0 },
     date: { type: String, default: () => new Date().toLocaleString('vi-VN') },
     createdAt: { type: Date, default: Date.now }
 });
@@ -80,17 +85,22 @@ const CarouselImageSchema = new mongoose.Schema({
 const ChatData = mongoose.model('ChatData', ChatDataSchema);
 const CarouselImage = mongoose.model('CarouselImage', CarouselImageSchema);
 
-// Routes
+// ============================================
+// DATA ROUTES - UPDATED for Word Support
+// ============================================
 
 // Get all data
 app.get('/api/data', async (req, res) => {
     try {
         const data = await ChatData.find().sort({ createdAt: -1 });
-        // Map _id to id for frontend compatibility
+        // Map _id to id for frontend compatibility, include new fields
         const formattedData = data.map(item => ({
             id: item._id,
             title: item.title,
             content: item.content,
+            fileType: item.fileType || 'text',
+            htmlContent: item.htmlContent,
+            imageCount: item.imageCount || 0,
             date: item.date
         }));
         res.json(formattedData);
@@ -99,16 +109,34 @@ app.get('/api/data', async (req, res) => {
     }
 });
 
-// Add new data
+// Add new data - UPDATED to support Word documents
 app.post('/api/data', async (req, res) => {
     try {
-        const { title, content } = req.body;
-        const newData = new ChatData({ title, content });
+        const { title, content, fileType, htmlContent, imageCount } = req.body;
+        
+        if (!title || !content) {
+            return res.status(400).json({ error: 'Title and content are required' });
+        }
+
+        const newData = new ChatData({ 
+            title, 
+            content,
+            fileType: fileType || 'text',
+            htmlContent: htmlContent || null,
+            imageCount: imageCount || 0
+        });
+        
         await newData.save();
+        
+        console.log(`✅ Saved new ${fileType || 'text'} data: "${title}"${imageCount > 0 ? ` with ${imageCount} images` : ''}`);
+        
         res.json({
             id: newData._id,
             title: newData.title,
             content: newData.content,
+            fileType: newData.fileType,
+            htmlContent: newData.htmlContent,
+            imageCount: newData.imageCount,
             date: newData.date
         });
     } catch (err) {
@@ -119,22 +147,26 @@ app.post('/api/data', async (req, res) => {
 // Delete data
 app.delete('/api/data/:id', async (req, res) => {
     try {
-        await ChatData.findByIdAndDelete(req.params.id);
+        const deletedData = await ChatData.findByIdAndDelete(req.params.id);
+        if (deletedData) {
+            console.log(`🗑️ Deleted data: "${deletedData.title}"`);
+        }
         res.json({ message: 'Deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
+// UPDATED Ask endpoint - support Word documents in context
 app.post('/api/ask', async (req, res) => {
     try {
         if (!geminiModel) {
-            return res.status(500).json({ error: 'Thiáº¿u cáº¥u hÃ¬nh Gemini API' });
+            return res.status(500).json({ error: 'Thiếu cấu hình Gemini API' });
         }
 
         const question = (req.body.question || '').trim();
         if (!question) {
-            return res.status(400).json({ error: 'Vui lÃ²ng nháº­p cÃ¢u há»i' });
+            return res.status(400).json({ error: 'Vui lòng nhập câu hỏi' });
         }
 
         const regex = new RegExp(escapeRegex(question), 'i');
@@ -149,16 +181,22 @@ app.post('/api/ask', async (req, res) => {
             relevantData = await ChatData.find().sort({ createdAt: -1 }).limit(6);
         }
 
-        const context = relevantData.map((item, index) => `Má»¥c ${index + 1}: ${item.title}\nNgÃ y lÆ°u: ${item.date}\nNá»™i dung: ${item.content}`).join('\n\n');
+        const context = relevantData.map((item, index) => {
+            let itemText = `Mục ${index + 1}: ${item.title}\nNgày lưu: ${item.date}\nNội dung: ${item.content}`;
+            if (item.fileType === 'word' && item.imageCount > 0) {
+                itemText += `\n(Tài liệu Word có ${item.imageCount} hình ảnh)`;
+            }
+            return itemText;
+        }).join('\n\n');
 
         const prompt = [
-            'Báº¡n lÃ  trá»£ lÃ½ AI há»— trá»£ báº§u cá»­ PhÆ°á»ng HoÃ i NhÆ¡n Báº¯c.',
-            'LuÃ´n tráº£ lá»i báº±ng tiáº¿ng Viá»‡t, chá»‰ sá»­ dá»¥ng thÃ´ng tin trong dá»¯ liá»‡u Ä‘Æ°á»£c cung cáº¥p.',
-            'Náº¿u dá»¯ liá»‡u khÃ´ng Ä‘á»§, hÃ£y nÃ³i rÃµ vÃ  gá»£i Ã½ ngÆ°á»i dÃ¹ng kiá»ƒm tra láº¡i sau.',
-            'Dá»¯ liá»‡u:',
-            context || 'KhÃ´ng cÃ³ dá»¯ liá»‡u',
-            `CÃ¢u há»i: ${question}`,
-            'CÃ¢u tráº£ lá»i chi tiáº¿t:'
+            'Bạn là trợ lý AI hỗ trợ bầu cử Phường Hoài Nhơn Bắc.',
+            'Luôn trả lời bằng tiếng Việt, chỉ sử dụng thông tin trong dữ liệu được cung cấp.',
+            'Nếu dữ liệu không đủ, hãy nói rõ và gợi ý người dùng kiểm tra lại sau.',
+            'Dữ liệu:',
+            context || 'Không có dữ liệu',
+            `Câu hỏi: ${question}`,
+            'Câu trả lời chi tiết:'
         ].join('\n\n');
 
         const result = await geminiModel.generateContent(prompt);
@@ -167,19 +205,26 @@ app.post('/api/ask', async (req, res) => {
             : '';
 
         res.json({
-            answer: answer && answer.trim().length > 0 ? answer : 'TÃ´i chÆ°a tÃ¬m tháº¥y thÃ´ng tin phÃ¹ há»£p trong dá»¯ liá»‡u hiá»‡n cÃ³.',
+            answer: answer && answer.trim().length > 0 ? answer : 'Tôi chưa tìm thấy thông tin phù hợp trong dữ liệu hiện có.',
             references: relevantData.map(item => ({
                 id: item._id,
                 title: item.title,
                 content: item.content,
+                fileType: item.fileType,
+                htmlContent: item.htmlContent,
+                imageCount: item.imageCount,
                 date: item.date
             }))
         });
     } catch (err) {
         console.error('Gemini API error:', err);
-        res.status(500).json({ error: 'KhÃ´ng thá»ƒ xá»­ lÃ½ yÃªu cáº§u. Vui lÃ²ng thá»­ láº¡i.' });
+        res.status(500).json({ error: 'Không thể xử lý yêu cầu. Vui lòng thử lại.' });
     }
 });
+
+// ============================================
+// CAROUSEL ROUTES
+// ============================================
 
 // Get carousel images
 app.get('/api/carousel', async (req, res) => {
@@ -221,6 +266,8 @@ app.post('/api/carousel/upload', upload.single('image'), async (req, res) => {
         });
 
         await newImage.save();
+        console.log(`✅ Uploaded carousel image: "${newImage.title}"`);
+        
         res.json({
             success: true,
             message: 'Image uploaded successfully',
@@ -285,22 +332,48 @@ app.delete('/api/carousel/:id', async (req, res) => {
             });
         }
         
+        console.log(`🗑️ Deleted carousel image: "${image ? image.title : 'Unknown'}"`);
         res.json({ message: 'Deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Serve frontend files
+// ============================================
+// SERVE FRONTEND FILES
+// ============================================
+
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+    res.sendFile(path.join(__dirname, 'admin-chat-word-full.html'));
 });
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
+// ============================================
+// START SERVER
+// ============================================
+
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`
+╔═══════════════════════════════════════╗
+║   🚀 AI Chat Admin Server Started    ║
+║                                       ║
+║   📡 Port: ${PORT}                        ║
+║   🗄️  Database: MongoDB               ║
+║   📄 Word Support: ✅ Enabled         ║
+║                                       ║
+║   Endpoints:                          ║
+║   • GET  /api/data                    ║
+║   • POST /api/data (Word support)     ║
+║   • DEL  /api/data/:id                ║
+║   • POST /api/ask                     ║
+║   • GET  /api/carousel                ║
+║   • POST /api/carousel/upload         ║
+║   • DEL  /api/carousel/:id            ║
+║                                       ║
+║   Open: http://localhost:${PORT}        ║
+╚═══════════════════════════════════════╝
+    `);
 });

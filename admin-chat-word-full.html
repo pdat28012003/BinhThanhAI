@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chat Admin - Quản Lý Dữ Liệu</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -82,6 +83,7 @@
             cursor: pointer;
             transition: all 0.3s;
             border-left: 3px solid transparent;
+            position: relative;
         }
 
         .data-item:hover {
@@ -94,6 +96,9 @@
             color: #333;
             margin-bottom: 4px;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .data-item-preview {
@@ -108,6 +113,16 @@
             font-size: 11px;
             color: #999;
             margin-top: 4px;
+        }
+
+        .file-type-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
         }
 
         .chat-area {
@@ -185,6 +200,185 @@
             color: #333;
             border-bottom-left-radius: 4px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Word Document Styling */
+        .word-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e1e8ed;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Calibri', 'Segoe UI', sans-serif;
+            line-height: 1.6;
+        }
+
+        .word-content h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .word-content h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 18px;
+            margin-bottom: 10px;
+            color: #2c2c2c;
+        }
+
+        .word-content h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            color: #3c3c3c;
+        }
+
+        .word-content h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            color: #4c4c4c;
+        }
+
+        .word-content h5 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            color: #5c5c5c;
+        }
+
+        .word-content h6 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 4px;
+            color: #6c6c6c;
+        }
+
+        .word-content p {
+            margin-bottom: 12px;
+            text-align: justify;
+            color: #333;
+        }
+
+        .word-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .word-content ul, .word-content ol {
+            margin-left: 30px;
+            margin-bottom: 12px;
+        }
+
+        .word-content li {
+            margin-bottom: 6px;
+            line-height: 1.6;
+        }
+
+        .word-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .word-content table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .word-content table td {
+            padding: 10px 12px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .word-content table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .word-content table tr:hover {
+            background: #e8f0fe;
+        }
+
+        .word-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #555;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 4px;
+        }
+
+        .word-content strong, .word-content b {
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .word-content em, .word-content i {
+            font-style: italic;
+        }
+
+        .word-content u {
+            text-decoration: underline;
+        }
+
+        .word-content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .word-content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .word-content pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .word-content hr {
+            border: none;
+            border-top: 2px solid #e1e8ed;
+            margin: 20px 0;
+        }
+
+        /* Centered text */
+        .word-content [style*="text-align: center"],
+        .word-content [style*="text-align:center"] {
+            text-align: center !important;
+        }
+
+        /* Right aligned text */
+        .word-content [style*="text-align: right"],
+        .word-content [style*="text-align:right"] {
+            text-align: right !important;
         }
 
         .search-results {
@@ -480,6 +674,48 @@
             background: #c82333;
         }
 
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover {
+            background: #f0f4ff;
+            border-color: #5568d3;
+        }
+
+        .file-upload-area.dragover {
+            background: #e8f0fe;
+            border-color: #5568d3;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f4ff;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .processing-status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #856404;
+            display: none;
+        }
+
+        .processing-status.active {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -491,6 +727,7 @@
             }
 
             .message-content {
+                max-width: 85%;
             }
         }
     </style>
@@ -538,7 +775,7 @@
             <div class="chat-messages" id="chatMessages">
                 <div class="message message-ai">
                     <div class="message-content">
-                        Xin chào! 👋 Tôi là trợ lý AI Admin. Hãy nhập câu hỏi hoặc từ khóa để tìm kiếm trong dữ liệu đã lưu. Bạn cũng có thể thêm dữ liệu mới bằng cách nhấn nút "Thêm Dữ Liệu Mới" bên trái.
+                        Xin chào! 👋 Tôi là trợ lý AI Admin. Hãy nhập câu hỏi hoặc từ khóa để tìm kiếm trong dữ liệu đã lưu. Bạn cũng có thể thêm dữ liệu mới (văn bản hoặc file Word với hình ảnh) bằng cách nhấn nút "Thêm Mới" bên trái.
                     </div>
                 </div>
             </div>
@@ -570,11 +807,39 @@
                     <label for="dataTitle">Tiêu đề:</label>
                     <input type="text" id="dataTitle" required placeholder="Nhập tiêu đề cho dữ liệu">
                 </div>
+                
                 <div class="form-group">
-                    <label for="dataContent">Nội dung:</label>
-                    <textarea id="dataContent" required placeholder="Nhập nội dung văn bản..."></textarea>
+                    <label>Chọn loại dữ liệu:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <label style="flex: 1; cursor: pointer;">
+                            <input type="radio" name="dataType" value="text" checked onchange="toggleDataInput()"> Văn bản
+                        </label>
+                        <label style="flex: 1; cursor: pointer;">
+                            <input type="radio" name="dataType" value="word" onchange="toggleDataInput()"> File Word
+                        </label>
+                    </div>
                 </div>
-                <button type="submit" class="save-btn">Lưu Dữ Liệu</button>
+
+                <div class="form-group" id="textInputGroup">
+                    <label for="dataContent">Nội dung văn bản:</label>
+                    <textarea id="dataContent" placeholder="Nhập nội dung văn bản..."></textarea>
+                </div>
+
+                <div class="form-group" id="wordInputGroup" style="display: none;">
+                    <label for="wordFile">Upload File Word (.docx):</label>
+                    <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('wordFile').click()">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📄</div>
+                        <p>Click để chọn file hoặc kéo thả file vào đây</p>
+                        <p style="font-size: 12px; color: #666; margin-top: 5px;">Hỗ trợ file .docx (bao gồm cả hình ảnh)</p>
+                    </div>
+                    <input type="file" id="wordFile" accept=".docx" style="display: none;" onchange="handleWordFile(this)">
+                    <div id="processingStatus" class="processing-status">
+                        🔄 Đang xử lý file Word...
+                    </div>
+                    <div id="fileInfo" class="file-info" style="display: none;"></div>
+                </div>
+
+                <button type="submit" class="save-btn" id="saveBtn">Lưu Dữ Liệu</button>
             </form>
 
             <!-- Carousel Form -->
@@ -608,15 +873,181 @@
         const API_URL = '/api/data';
         const CAROUSEL_API_URL = '/api/carousel';
         let currentTab = 'data';
+        let selectedWordFile = null;
+        let wordFileData = null;
 
         // Load dữ liệu từ server khi trang load
         window.onload = function() {
             fetchData();
             fetchCarouselImages();
             setupImagePreview();
+            setupDragAndDrop();
         };
 
-        // Setup image preview
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            const dropArea = document.getElementById('fileUploadArea');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.remove('dragover');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', function(e) {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.name.endsWith('.docx')) {
+                        document.getElementById('wordFile').files = files;
+                        handleWordFile({files: files});
+                    } else {
+                        alert('Chỉ chấp nhận file .docx');
+                    }
+                }
+            }, false);
+        }
+
+        // Toggle giữa văn bản và Word
+        function toggleDataInput() {
+            const dataType = document.querySelector('input[name="dataType"]:checked').value;
+            const textGroup = document.getElementById('textInputGroup');
+            const wordGroup = document.getElementById('wordInputGroup');
+            
+            if (dataType === 'text') {
+                textGroup.style.display = 'block';
+                wordGroup.style.display = 'none';
+                document.getElementById('dataContent').required = true;
+                document.getElementById('wordFile').required = false;
+            } else {
+                textGroup.style.display = 'none';
+                wordGroup.style.display = 'block';
+                document.getElementById('dataContent').required = false;
+                document.getElementById('wordFile').required = true;
+            }
+        }
+
+        // Xử lý file Word với hình ảnh
+        async function handleWordFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            selectedWordFile = file;
+            
+            // Hiển thị trạng thái xử lý
+            const processingStatus = document.getElementById('processingStatus');
+            const fileInfo = document.getElementById('fileInfo');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            processingStatus.classList.add('active');
+            fileInfo.style.display = 'none';
+            saveBtn.disabled = true;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Cấu hình Mammoth để chuyển đổi hình ảnh sang base64
+                const options = {
+                    convertImage: mammoth.images.imgElement(function(image) {
+                        return image.read("base64").then(function(imageBuffer) {
+                            return {
+                                src: "data:" + image.contentType + ";base64," + imageBuffer
+                            };
+                        });
+                    }),
+                    styleMap: [
+                        "p[style-name='Heading 1'] => h1:fresh",
+                        "p[style-name='Heading 2'] => h2:fresh",
+                        "p[style-name='Heading 3'] => h3:fresh",
+                        "p[style-name='Heading 4'] => h4:fresh",
+                        "p[style-name='Heading 5'] => h5:fresh",
+                        "p[style-name='Heading 6'] => h6:fresh",
+                        "p[style-name='Title'] => h1.title:fresh",
+                        "p[style-name='Subtitle'] => h2.subtitle:fresh",
+                        "r[style-name='Strong'] => strong",
+                        "p[style-name='Quote'] => blockquote:fresh",
+                        "p[style-name='Intense Quote'] => blockquote.intense:fresh"
+                    ]
+                };
+
+                const result = await mammoth.convertToHtml({arrayBuffer: arrayBuffer}, options);
+                const htmlContent = result.value;
+                
+                // Trích xuất text thuần để tìm kiếm
+                const div = document.createElement('div');
+                div.innerHTML = htmlContent;
+                const plainText = div.textContent || div.innerText || '';
+                
+                // Lưu dữ liệu
+                wordFileData = {
+                    htmlContent: htmlContent,
+                    plainText: plainText,
+                    fileName: file.name,
+                    fileSize: file.size,
+                    images: extractImages(htmlContent)
+                };
+                
+                // Hiển thị thông tin file
+                processingStatus.classList.remove('active');
+                fileInfo.innerHTML = `
+                    <strong>📄 ${file.name}</strong><br>
+                    <small>Kích thước: ${(file.size / 1024).toFixed(2)} KB</small><br>
+                    <small>Số lượng hình ảnh: ${wordFileData.images.length}</small><br>
+                    <small style="color: #28a745;">✓ File đã xử lý xong, bao gồm ${wordFileData.images.length} hình ảnh</small>
+                `;
+                fileInfo.style.display = 'block';
+                saveBtn.disabled = false;
+                
+                console.log('Word file processed successfully with images');
+                
+                // Hiển thị warnings nếu có
+                if (result.messages && result.messages.length > 0) {
+                    console.warn('Mammoth warnings:', result.messages);
+                }
+                
+            } catch (error) {
+                console.error('Error reading Word file:', error);
+                processingStatus.classList.remove('active');
+                alert('Lỗi khi đọc file Word: ' + error.message);
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Trích xuất thông tin về hình ảnh từ HTML
+        function extractImages(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            const images = div.getElementsByTagName('img');
+            const imageInfo = [];
+            
+            for (let img of images) {
+                imageInfo.push({
+                    src: img.src,
+                    alt: img.alt || '',
+                    width: img.width || 'auto',
+                    height: img.height || 'auto'
+                });
+            }
+            
+            return imageInfo;
+        }
+
+        // Setup image preview cho carousel
         function setupImagePreview() {
             const fileInput = document.getElementById('carouselImage');
             fileInput.addEventListener('change', function(e) {
@@ -720,6 +1151,14 @@
             if (currentTab === 'data') {
                 document.getElementById('dataTitle').value = '';
                 document.getElementById('dataContent').value = '';
+                document.querySelector('input[name="dataType"][value="text"]').checked = true;
+                toggleDataInput();
+                selectedWordFile = null;
+                wordFileData = null;
+                document.getElementById('fileInfo').style.display = 'none';
+                document.getElementById('processingStatus').classList.remove('active');
+                document.getElementById('wordFile').value = '';
+                document.getElementById('saveBtn').disabled = false;
             } else {
                 document.getElementById('carouselTitle').value = '';
                 document.getElementById('carouselAlt').value = '';
@@ -739,7 +1178,23 @@
             event.preventDefault();
             
             const title = document.getElementById('dataTitle').value;
-            const content = document.getElementById('dataContent').value;
+            const dataType = document.querySelector('input[name="dataType"]:checked').value;
+            let content = '';
+            let fileType = 'text';
+            let htmlContent = null;
+            let imageCount = 0;
+
+            if (dataType === 'text') {
+                content = document.getElementById('dataContent').value;
+            } else if (dataType === 'word' && wordFileData) {
+                content = wordFileData.plainText || '';
+                htmlContent = wordFileData.htmlContent || '';
+                imageCount = wordFileData.images.length;
+                fileType = 'word';
+            } else {
+                alert('Vui lòng chọn và xử lý file Word trước');
+                return;
+            }
             
             try {
                 const response = await fetch(API_URL, {
@@ -747,13 +1202,21 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ title, content }),
+                    body: JSON.stringify({ 
+                        title, 
+                        content,
+                        fileType,
+                        htmlContent,
+                        imageCount
+                    }),
                 });
 
                 if (response.ok) {
-                    await fetchData(); // Tải lại dữ liệu sau khi lưu
+                    await fetchData();
                     closeModal();
-                    addMessage('ai', `✅ Đã lưu dữ liệu mới: "${title}"`);
+                    const icon = fileType === 'word' ? '📄' : '📝';
+                    const imgText = imageCount > 0 ? ` (có ${imageCount} hình ảnh)` : '';
+                    addMessage('ai', `✅ Đã lưu dữ liệu mới: "${title}" ${icon}${imgText}`);
                 } else {
                     alert('Lỗi khi lưu dữ liệu');
                 }
@@ -837,14 +1300,19 @@
                 return;
             }
             
-            dataList.innerHTML = dataStore.map(data => `
-                <div class="data-item" onclick="viewData('${data.id}')">
-                    <div class="data-item-title">${data.title}</div>
-                    <div class="data-item-preview">${data.content.substring(0, 60)}...</div>
-                    <div class="data-item-date">${data.date}</div>
-                    <button class="delete-btn" onclick="deleteData(event, '${data.id}')">Xóa</button>
-                </div>
-            `).join('');
+            dataList.innerHTML = dataStore.map(data => {
+                const icon = data.fileType === 'word' ? '📄' : '📝';
+                const badge = data.fileType === 'word' ? '<span class="file-type-badge">WORD</span>' : '';
+                const imgBadge = data.imageCount > 0 ? `<span class="file-type-badge" style="background: #28a745;">🖼️ ${data.imageCount}</span>` : '';
+                return `
+                    <div class="data-item" onclick="viewData('${data.id}')">
+                        <div class="data-item-title">${icon} ${data.title} ${badge} ${imgBadge}</div>
+                        <div class="data-item-preview">${data.content.substring(0, 60)}...</div>
+                        <div class="data-item-date">${data.date}</div>
+                        <button class="delete-btn" onclick="deleteData(event, '${data.id}')">Xóa</button>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Xem chi tiết dữ liệu
@@ -852,11 +1320,24 @@
             const data = dataStore.find(d => d.id === id);
             if (data) {
                 addMessage('user', `Xem dữ liệu: ${data.title}`);
-                addMessage('ai', `
-                    <strong>📄 ${data.title}</strong><br><br>
-                    ${data.content}<br><br>
-                    <em>Lưu lúc: ${data.date}</em>
-                `);
+                
+                let responseContent = `<strong>📄 ${data.title}</strong>`;
+                
+                if (data.imageCount && data.imageCount > 0) {
+                    responseContent += ` <span class="file-type-badge" style="background: #28a745;">Có ${data.imageCount} hình ảnh</span>`;
+                }
+                
+                responseContent += `<br><br>`;
+                
+                if (data.fileType === 'word' && data.htmlContent) {
+                    responseContent += `<div class="word-content">${data.htmlContent}</div>`;
+                } else {
+                    responseContent += `${data.content.replace(/\n/g, '<br>')}`;
+                }
+                
+                responseContent += `<br><br><em>Lưu lúc: ${data.date}</em>`;
+                
+                addMessage('ai', responseContent);
             }
         }
 
@@ -901,6 +1382,9 @@
                     results.push({
                         title: data.title,
                         content: data.content,
+                        htmlContent: data.htmlContent,
+                        fileType: data.fileType,
+                        imageCount: data.imageCount || 0,
                         date: data.date
                     });
                 }
@@ -930,13 +1414,21 @@
                     response += '<div class="search-results-title">📋 Kết quả tìm kiếm:</div>';
                     
                     results.forEach((result, index) => {
-                        response += `
-                            <div class="search-result-item">
-                                <strong>${index + 1}. ${result.title}</strong><br>
-                                <div style="margin-top: 8px; line-height: 1.6; white-space: pre-wrap;">${result.content}</div><br>
-                                <small style="color: #999;">Lưu lúc: ${result.date}</small>
-                            </div>
-                        `;
+                        const icon = result.fileType === 'word' ? '📄' : '📝';
+                        const badge = result.fileType === 'word' ? '<span class="file-type-badge">WORD</span>' : '';
+                        const imgBadge = result.imageCount > 0 ? `<span class="file-type-badge" style="background: #28a745;">🖼️ ${result.imageCount}</span>` : '';
+                        
+                        response += `<div class="search-result-item">`;
+                        response += `<strong>${index + 1}. ${icon} ${result.title} ${badge} ${imgBadge}</strong><br>`;
+                        
+                        if (result.fileType === 'word' && result.htmlContent) {
+                            response += `<div class="word-content" style="margin-top: 10px; max-height: 400px; overflow-y: auto;">${result.htmlContent}</div>`;
+                        } else {
+                            response += `<div style="margin-top: 8px; line-height: 1.6; white-space: pre-wrap;">${result.content}</div>`;
+                        }
+                        
+                        response += `<br><small style="color: #999;">Lưu lúc: ${result.date}</small>`;
+                        response += `</div>`;
                     });
                     
                     response += '</div>';
