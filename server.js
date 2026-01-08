@@ -10,7 +10,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const GEMINI_MODEL_NAME = 'gemini-2.5-flash-lite';
+const GEMINI_MODEL_NAME = 'gemini-2.5-flash';
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const geminiClient = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 const geminiModel = geminiClient ? geminiClient.getGenerativeModel({ model: GEMINI_MODEL_NAME }) : null;
